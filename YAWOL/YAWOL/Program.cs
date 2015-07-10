@@ -202,13 +202,22 @@ namespace YAWOL
                 }
             }
 
-            Console.WriteLine("Index - MAC - IP - Known Host");
+            Console.WriteLine("Index - Host - MAC - IP - Known Host");
             var hosts = NetworkScanner.Scan(Nic.AssignedIP, exclusions.ToArray(), start, end);
             int i = 0;
             foreach (var host in hosts)
             {
-                Console.WriteLine("{0}): {1} {2} {3} {4}", i++, host.Name, BitConverter.ToString(host.MacAddress),
-                    host.LastKnownIp, Db.GetHostByName(host.Name) == null ? "No" : "Yes");
+                Host knownHost = Db.GetHostByMac(host.MacAddress);
+                if (knownHost == null)
+                {
+                    Console.WriteLine("{0}): {1} {2} {3} {4}", i++, host.Name, BitConverter.ToString(host.MacAddress), host.LastKnownIp,
+                        "No");
+                }
+                else
+                {
+                    Console.WriteLine("{0}): {1} \"{2}\" {3} {4} {5}", i++, knownHost.Name, knownHost.Alias, BitConverter.ToString(knownHost.MacAddress), host.LastKnownIp,
+                        "Yes");
+                }
             }
 
             Console.WriteLine("Enter the numbers of the hosts to save");
