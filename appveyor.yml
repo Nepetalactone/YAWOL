@@ -1,5 +1,5 @@
 deploy:
-  release: yawol-v$(appveyor_build_version)
+  release: master
   provider: GitHub
   auth_token:
     secure: cxiHYFfint9KkR184q7kzHfxk4WEvRo6QG6IGZ+emXCOviMV/3mOQJqmDxKjIh4e
