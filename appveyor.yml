@@ -3,8 +3,7 @@ deploy:
   provider: GitHub
   auth_token:
     secure: cxiHYFfint9KkR184q7kzHfxk4WEvRo6QG6IGZ+emXCOviMV/3mOQJqmDxKjIh4e
-  artifact: YAWOL\YAWOL\bin\Release\YAWOL.exe
-  artifact: YAWOL\YAWOL\bin\Release\sqlite3.dll
+  artifact: yawol.zip
   draft: false
   prerelease: false
   on:
