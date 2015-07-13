@@ -6,6 +6,8 @@ deploy:
   auth_token:
     secure: cxiHYFfint9KkR184q7kzHfxk4WEvRo6QG6IGZ+emXCOviMV/3mOQJqmDxKjIh4e
   draft: false
+  artifacts: 
+    - path: YAWOL\YAWOL\bin\Release\YAWOL.exe
   prerelease: false
   on:
     branch: master
