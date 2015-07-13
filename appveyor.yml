@@ -11,3 +11,4 @@ deploy:
     branch: master
 artifacts: 
   - path: YAWOL\YAWOL\bin\Release\YAWOL.exe
+  - path: YAWOL\YAWOL\bin\Release\sqlite.dll
