@@ -9,7 +9,6 @@ deploy:
   prerelease: false
   on:
     branch: master
-after_build: 7z a yawol.zip C:\projects\yawol\YAWOL\YAWOL\bin\Release\YAWOL.exe C:\projects\yawol\YAWOL\YAWOL\bin\Release\sqlite.dll
+after_build: 7z a yawol.zip C:\projects\yawol\YAWOL\YAWOL\bin\Release\YAWOL.exe C:\projects\yawol\YAWOL\YAWOL\bin\Release\sqlite3.dll
 artifacts: 
-  - path: YAWOL\YAWOL\bin\Release\YAWOL.exe
-  - path: YAWOL\YAWOL\bin\Release\sqlite.dll
+  - path: C:\projects\yawol\YAWOL\YAWOL\bin\Release\yawol.zip
