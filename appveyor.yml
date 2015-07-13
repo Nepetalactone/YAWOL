@@ -5,7 +5,9 @@ deploy:
   provider: GitHub
   auth_token:
     secure: cxiHYFfint9KkR184q7kzHfxk4WEvRo6QG6IGZ+emXCOviMV/3mOQJqmDxKjIh4e
-  artifact: yawol.zip
+  artifacts:
+    - path: yawol.zip
+      name: yawol
   draft: false
   prerelease: false
   on:
