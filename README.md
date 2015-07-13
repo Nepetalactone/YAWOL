@@ -1,5 +1,5 @@
 # YAWOL
-Yet Another Wake On LAN
+Yet Another Wake On LAN tool
 
 ## Usage 
 Executing it without arguments gives a list of the possible arguments
