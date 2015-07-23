@@ -12,3 +12,4 @@ deploy:
 after_build: 7z a yawol.zip C:\projects\yawol\YAWOL\YAWOL\bin\Release\YAWOL.exe C:\projects\yawol\YAWOL\YAWOL\bin\Release\sqlite3.dll
 artifacts: 
   - path: yawol.zip
+skip_tags: true
