@@ -71,9 +71,9 @@ namespace YAWOL
                             Console.WriteLine("Enter hosts to remove");
                             hostsToRemove = Console.ReadLine().Split(' ');
                         }
-                        for (int i = 0; i < hostsToRemove.Length; i++)
+                        foreach (string host in hostsToRemove)
                         {
-                            RemoveHost(hostsToRemove[i]);
+                            RemoveHost(host);
                         }
                         break;
                 }
@@ -204,8 +204,8 @@ namespace YAWOL
 
             Console.Clear();
 
-            const string format = "{0,-5} {1,-25} {2,-17} {3,-12} {4,-3}";
-            Console.WriteLine(format, "Index", "Host", "MAC", "IP", "Known Host");
+            const string hostFormat = "{0,-5} {1,-25} {2,-17} {3,-12} {4,-3}";
+            Console.WriteLine(hostFormat, "Index", "Host", "MAC", "IP", "Known Host");
 
             var hosts = NetworkScanner.Scan(Nic.AssignedIP, exclusions.ToArray(), start, end);
             int i = 0;
@@ -213,7 +213,7 @@ namespace YAWOL
             {
                 Host knownHost = Db.GetHostByMac(host.MacAddress);
 
-                Console.WriteLine(format, i++ + "):", host.Name, BitConverter.ToString(host.MacAddress),
+                Console.WriteLine(hostFormat, i++ + "):", host.Name, BitConverter.ToString(host.MacAddress),
                         host.LastKnownIp,
                         knownHost == null ? "No" : "Yes");
             }
