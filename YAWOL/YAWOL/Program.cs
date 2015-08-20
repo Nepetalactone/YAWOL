@@ -213,7 +213,7 @@ namespace YAWOL
             {
                 Host knownHost = Db.GetHostByMac(host.MacAddress);
 
-                Console.WriteLine(hostFormat, i++ + "):", host.Name, BitConverter.ToString(host.MacAddress),
+                Console.WriteLine(hostFormat, i++ + "):", knownHost == null ? host.Name : Db.GetHostByMac(host.MacAddress).Name, BitConverter.ToString(host.MacAddress),
                         host.LastKnownIp,
                         knownHost == null ? "No" : "Yes");
             }
