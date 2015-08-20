@@ -41,9 +41,9 @@ namespace YAWOL
                             Console.WriteLine("Enter hosts to wake");
                             hostsToWake = Console.ReadLine().Split(' ');
                         }
-                        for (int i = 0; i < hostsToWake.Length; i++)
+                        foreach (string host in hostsToWake)
                         {
-                            Wake(hostsToWake[i]);
+                            Wake(host);
                         }
                         break;
                     case "scan-network":
@@ -186,11 +186,11 @@ namespace YAWOL
             Console.WriteLine("Enter starting ip");
             int start;
             start = Int32.TryParse(Console.ReadLine(), out start) ? start : 0;
-            
+
             Console.WriteLine("Enter ending ip");
             int end;
             end = Int32.TryParse(Console.ReadLine(), out end) ? end : 255;
-            
+
             Console.WriteLine("Enter hosts to exclude");
             List<int> exclusions = new List<int>();
             foreach (var number in Console.ReadLine().Split(' '))
@@ -202,22 +202,20 @@ namespace YAWOL
                 }
             }
 
-            Console.WriteLine("Index - Host - MAC - IP - Known Host");
+            Console.Clear();
+
+            const string format = "{0,-5} {1,-25} {2,-17} {3,-12} {4,-3}";
+            Console.WriteLine(format, "Index", "Host", "MAC", "IP", "Known Host");
+
             var hosts = NetworkScanner.Scan(Nic.AssignedIP, exclusions.ToArray(), start, end);
             int i = 0;
             foreach (var host in hosts)
             {
                 Host knownHost = Db.GetHostByMac(host.MacAddress);
-                if (knownHost == null)
-                {
-                    Console.WriteLine("{0}): {1} {2} {3} {4}", i++, host.Name, BitConverter.ToString(host.MacAddress), host.LastKnownIp,
-                        "No");
-                }
-                else
-                {
-                    Console.WriteLine("{0}): {1} \"{2}\" {3} {4} {5}", i++, knownHost.Name, knownHost.Alias, BitConverter.ToString(knownHost.MacAddress), host.LastKnownIp,
-                        "Yes");
-                }
+
+                Console.WriteLine(format, i++ + "):", host.Name, BitConverter.ToString(host.MacAddress),
+                        host.LastKnownIp,
+                        knownHost == null ? "No" : "Yes");
             }
 
             Console.WriteLine("Enter the numbers of the hosts to save");

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
@@ -17,7 +16,7 @@ namespace YAWOL
 
         public static Host[] Scan(string localNetworkAddress, int[] excludedHosts, int low = 1, int high = 255)
         {
-            high = high < 256 && high >= 0? high : 255;
+            high = high < 256 && high >= 0 ? high : 255;
             low = low < 256 && low >= 0 ? low : 0;
             localNetworkAddress = localNetworkAddress.Remove(localNetworkAddress.LastIndexOf('.') + 1);
 
@@ -90,12 +89,8 @@ namespace YAWOL
 
         public static NIC[] GetNetworkInterfaces()
         {
-            List<NIC> nics = new List<NIC>();
-            foreach (string nic in NetworkInterface.GetAllNetworkInterfaces().Select(nic => nic.Name))
-            {
-                nics.Add(new NIC(nic, GetInterfaceIpAddress(nic)));
-            }
-            return nics.ToArray();
+            return (from nic in NetworkInterface.GetAllNetworkInterfaces().Select(n => n.Name)
+                select new NIC(nic, GetInterfaceIpAddress(nic))).ToArray();
         }
 
         private static string GetInterfaceIpAddress(string interfacename)
