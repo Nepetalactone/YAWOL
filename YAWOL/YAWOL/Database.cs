@@ -48,7 +48,7 @@ namespace YAWOL
 
         public void RemoveHost(string machine)
         {
-            Host hostToDelete = GetHostByName(machine);
+            var hostToDelete = GetHostByName(machine);
             if (hostToDelete != null)
             {
                 _connection.Delete<Host>(hostToDelete.MacAddress);

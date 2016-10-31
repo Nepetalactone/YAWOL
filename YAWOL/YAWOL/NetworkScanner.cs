@@ -15,19 +15,18 @@ namespace YAWOL
         [DllImport("iphlpapi.dll")]
         private static extern int SendARP(int DestIP, int SrcIP, [Out] byte[] pMacAddr, ref int PhyAddrLen);
 
-        public static Host[] Scan(string localNetworkAddress, int[] excludedHosts, int low = 1, int high = 255)
+        public static IEnumerable<Host> Scan(string localNetworkAddress, int[] excludedHosts, byte low = 1, byte high = 255)
         {
-            high = high < 256 && high >= 0? high : 255;
-            low = low < 256 && low >= 0 ? low : 0;
+            low = low == 0 ? (byte)1 : low;
             localNetworkAddress = localNetworkAddress.Remove(localNetworkAddress.LastIndexOf('.') + 1);
 
-            ConcurrentBag<PingReply> successfulPingReplies = new ConcurrentBag<PingReply>();
+            var successfulPingReplies = new ConcurrentBag<PingReply>();
             Parallel.For(low, high, i =>
             {
                 if (excludedHosts != null && !excludedHosts.Contains(i))
                 {
-                    Ping ping = new Ping();
-                    PingReply pingReply = ping.Send(localNetworkAddress + i);
+                    var ping = new Ping();
+                    var pingReply = ping.Send(localNetworkAddress + i);
                     if (pingReply.Status == IPStatus.Success)
                     {
                         successfulPingReplies.Add(pingReply);
@@ -35,7 +34,7 @@ namespace YAWOL
                 }
             });
 
-            ConcurrentBag<Host> scannedHosts = new ConcurrentBag<Host>();
+            var scannedHosts = new ConcurrentBag<Host>();
             Parallel.ForEach(successfulPingReplies, reply =>
             {
                 byte[] mac = new byte[6];
@@ -60,16 +59,16 @@ namespace YAWOL
                 });
             });
 
-            return scannedHosts.ToArray();
+            return scannedHosts;
         }
 
         public static void Wake(byte[] mac)
         {
-            using (UdpClient client = new UdpClient())
+            using (var client = new UdpClient())
             {
                 client.Connect(IPAddress.Broadcast, 9);
 
-                byte[] packet = new byte[17 * 6];
+                var packet = new byte[17 * 6];
 
                 for (int i = 0; i < 6; i++)
                 {
@@ -88,14 +87,9 @@ namespace YAWOL
             }
         }
 
-        public static NIC[] GetNetworkInterfaces()
+        public static IEnumerable<NIC> GetNetworkInterfaces()
         {
-            List<NIC> nics = new List<NIC>();
-            foreach (string nic in NetworkInterface.GetAllNetworkInterfaces().Select(nic => nic.Name))
-            {
-                nics.Add(new NIC(nic, GetInterfaceIpAddress(nic)));
-            }
-            return nics.ToArray();
+            return NetworkInterface.GetAllNetworkInterfaces().Select(nic => new NIC(nic.Name, GetInterfaceIpAddress(nic.Name)));
         }
 
         private static string GetInterfaceIpAddress(string interfacename)
@@ -104,12 +98,9 @@ namespace YAWOL
 
             if (nic.OperationalStatus == OperationalStatus.Up)
             {
-                UnicastIPAddressInformation uni =
-                    nic.GetIPProperties()
-                        .UnicastAddresses.FirstOrDefault(
-                            ip =>
-                                ip.Address.AddressFamily == AddressFamily.InterNetwork &&
-                                !IPAddress.IsLoopback(ip.Address));
+                var uni = nic.GetIPProperties().UnicastAddresses.FirstOrDefault(ip =>
+                                ip.Address.AddressFamily == AddressFamily.InterNetwork 
+                                && !IPAddress.IsLoopback(ip.Address));
 
                 if (uni != null)
                 {

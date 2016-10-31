@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 
 namespace YAWOL
@@ -93,7 +94,7 @@ namespace YAWOL
 
         private static void AddHost()
         {
-            Host host = new Host();
+            var host = new Host();
             Console.WriteLine("Enter a name for the host");
             host.Name = Console.ReadLine();
             while (Db.GetHostByName(host.Name) != null)
@@ -104,42 +105,26 @@ namespace YAWOL
             Console.WriteLine("Enter a MAC-Address for the host (use \":\" as delimiter");
             string macString = Console.ReadLine();
 
-            int i = 0;
-            byte[] macAddress = new byte[6];
-            foreach (var part in macString.Split(':'))
+            try
             {
-                byte macPart;
-                if (byte.TryParse(part, out macPart))
-                {
-                    macAddress[i] = macPart;
-                }
-                else
-                {
-                    Console.WriteLine("Couldn't parse MAC-address");
-                    return;
-                }
-                i++;
+                host.MacAddress = macString.Split(':').Select(b => byte.Parse(b)).ToArray();
+            } 
+            catch (Exception)
+            {
+                Console.WriteLine("Couldn't parse MAC-address");
+                return;
             }
-            host.MacAddress = macAddress;
             Console.WriteLine("Enter an alias for the host (optional)");
             host.Alias = Console.ReadLine();
             Console.WriteLine("Enter an IP-address for the host (optional)");
-            string ipString = Console.ReadLine();
+            var ipString = Console.ReadLine();
 
-            if (!String.IsNullOrEmpty(ipString))
+            byte ipPart;
+            if (!String.IsNullOrEmpty(ipString) && ipString.Split('.').All(b => byte.TryParse(b, out ipPart)))
             {
-                foreach (var part in ipString.Split('.'))
-                {
-                    int ipPart;
-                    if (!Int32.TryParse(part, out ipPart) && ipPart < 256 && ipPart >= 0)
-                    {
-                        Console.WriteLine("Couldn't parse IP-address");
-                        return;
-                    }
-                }
                 host.LastKnownIp = ipString;
+                Db.SaveHost(host);
             }
-            Db.SaveHost(host);
         }
 
         private static void RemoveHost(string machine)
@@ -161,7 +146,7 @@ namespace YAWOL
             if (Int32.TryParse(Console.ReadLine(), out aliasHost))
             {
                 Console.WriteLine("Enter the alias");
-                string alias = Console.ReadLine();
+                var alias = Console.ReadLine();
                 var host = hosts[aliasHost];
                 host.Alias = alias;
                 Db.AssignAlias(host);
@@ -184,30 +169,22 @@ namespace YAWOL
         private static void Scan()
         {
             Console.WriteLine("Enter starting ip");
-            int start;
-            start = Int32.TryParse(Console.ReadLine(), out start) ? start : 0;
+            byte start;
+            start = byte.TryParse(Console.ReadLine(), out start) ? start : (byte)1;
             
             Console.WriteLine("Enter ending ip");
-            int end;
-            end = Int32.TryParse(Console.ReadLine(), out end) ? end : 255;
+            byte end;
+            end = byte.TryParse(Console.ReadLine(), out end) ? end : (byte)255;
             
             Console.WriteLine("Enter hosts to exclude");
-            List<int> exclusions = new List<int>();
-            foreach (var number in Console.ReadLine().Split(' '))
-            {
-                int parsedNumber;
-                if (Int32.TryParse(number, out parsedNumber))
-                {
-                    exclusions.Add(parsedNumber);
-                }
-            }
+            var exclusions = Console.ReadLine().Split(' ').Select(e => int.Parse(e));
 
             Console.WriteLine("Index - Host - MAC - IP - Known Host");
-            var hosts = NetworkScanner.Scan(Nic.AssignedIP, exclusions.ToArray(), start, end);
+            var hosts = NetworkScanner.Scan(Nic.AssignedIP, exclusions.ToArray(), start, end).ToArray();
             int i = 0;
             foreach (var host in hosts)
             {
-                Host knownHost = Db.GetHostByMac(host.MacAddress);
+                var knownHost = Db.GetHostByMac(host.MacAddress);
                 if (knownHost == null)
                 {
                     Console.WriteLine("{0}): {1} {2} {3} {4}", i++, host.Name, BitConverter.ToString(host.MacAddress), host.LastKnownIp,
@@ -254,9 +231,9 @@ namespace YAWOL
 
             Console.WriteLine("Choose interface");
             int choice;
-            if (Int32.TryParse(Console.ReadLine(), out choice) && choice < nics.Length && choice >= 0)
+            if (Int32.TryParse(Console.ReadLine(), out choice) && choice < nics.Count() && choice >= 0)
             {
-                Nic = nics[choice];
+                Nic = nics.ElementAt(choice);
                 Properties.Settings.Default.NICIP = Nic.AssignedIP;
                 Properties.Settings.Default.NICName = Nic.Name;
                 Properties.Settings.Default.Save();
@@ -265,7 +242,7 @@ namespace YAWOL
 
         private static void Wake(string machine)
         {
-            Host host = Db.GetHostByName(machine);
+            var host = Db.GetHostByName(machine);
             if (host != null)
             {
                 Console.WriteLine("Waking {0}", (String.IsNullOrEmpty(host.Alias)) ? host.Name : host.Alias);
