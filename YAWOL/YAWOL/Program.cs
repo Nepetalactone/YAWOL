@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 
 namespace YAWOL
@@ -102,10 +103,10 @@ namespace YAWOL
                 host.Name = Console.ReadLine();
             }
             Console.WriteLine("Enter a MAC-Address for the host (use \":\" as delimiter");
-            string macString = Console.ReadLine();
+            var macString = Console.ReadLine();
 
             int i = 0;
-            byte[] macAddress = new byte[6];
+            var macAddress = new byte[6];
             foreach (var part in macString.Split(':'))
             {
                 byte macPart;
@@ -124,7 +125,7 @@ namespace YAWOL
             Console.WriteLine("Enter an alias for the host (optional)");
             host.Alias = Console.ReadLine();
             Console.WriteLine("Enter an IP-address for the host (optional)");
-            string ipString = Console.ReadLine();
+            var ipString = Console.ReadLine();
 
             if (!String.IsNullOrEmpty(ipString))
             {
@@ -147,7 +148,6 @@ namespace YAWOL
             Db.RemoveHost(machine);
         }
 
-
         private static void AssignAlias()
         {
             int i = 0;
@@ -162,7 +162,7 @@ namespace YAWOL
             {
                 Console.WriteLine("Enter the alias");
                 string alias = Console.ReadLine();
-                var host = hosts[aliasHost];
+                var host = hosts.ElementAt(aliasHost);
                 host.Alias = alias;
                 Db.AssignAlias(host);
             }
@@ -176,7 +176,7 @@ namespace YAWOL
             }
         }
 
-        private static Host[] GetHosts()
+        private static IEnumerable<Host> GetHosts()
         {
             return Db.GetHosts();
         }
@@ -184,12 +184,12 @@ namespace YAWOL
         private static void Scan()
         {
             Console.WriteLine("Enter starting ip");
-            int start;
-            start = Int32.TryParse(Console.ReadLine(), out start) ? start : 0;
+            byte start;
+            start = byte.TryParse(Console.ReadLine(), out start) ? start : byte.MinValue;
 
             Console.WriteLine("Enter ending ip");
-            int end;
-            end = Int32.TryParse(Console.ReadLine(), out end) ? end : 255;
+            byte end;
+            end = byte.TryParse(Console.ReadLine(), out end) ? end : byte.MaxValue;
 
             Console.WriteLine("Enter hosts to exclude");
             List<int> exclusions = new List<int>();
@@ -225,17 +225,17 @@ namespace YAWOL
                 int parsedHost = 0;
                 if (Int32.TryParse(host, out parsedHost))
                 {
-                    if (hosts[parsedHost].Name == "Unknown")
+                    if (hosts.ElementAt(parsedHost).Name == "Unknown")
                     {
-                        Console.WriteLine("{0} {1} doesn't have a name, enter one", BitConverter.ToString(hosts[parsedHost].MacAddress), hosts[parsedHost].LastKnownIp);
-                        hosts[parsedHost].Name = Console.ReadLine();
-                        while (Db.GetHostByName(hosts[parsedHost].Name) != null)
+                        Console.WriteLine("{0} {1} doesn't have a name, enter one", BitConverter.ToString(hosts.ElementAt(parsedHost).MacAddress), hosts.ElementAt(parsedHost).LastKnownIp);
+                        hosts.ElementAt(parsedHost).Name = Console.ReadLine();
+                        while (Db.GetHostByName(hosts.ElementAt(parsedHost).Name) != null)
                         {
                             Console.WriteLine("Hostname already exists, enter a new one");
-                            hosts[parsedHost].Name = Console.ReadLine();
+                            hosts.ElementAt(parsedHost).Name = Console.ReadLine();
                         }
                     }
-                    Db.SaveHost(hosts[parsedHost]);
+                    Db.SaveHost(hosts.ElementAt(parsedHost));
                 }
             }
         }
@@ -252,9 +252,9 @@ namespace YAWOL
 
             Console.WriteLine("Choose interface");
             int choice;
-            if (Int32.TryParse(Console.ReadLine(), out choice) && choice < nics.Length && choice >= 0)
+            if (Int32.TryParse(Console.ReadLine(), out choice) && choice < nics.Count() && choice >= 0)
             {
-                Nic = nics[choice];
+                Nic = nics.ElementAt(choice);
                 Properties.Settings.Default.NICIP = Nic.AssignedIP;
                 Properties.Settings.Default.NICName = Nic.Name;
                 Properties.Settings.Default.Save();

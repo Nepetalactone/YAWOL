@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using SQLite;
+using System.Collections.Generic;
 
 namespace YAWOL
 {
@@ -19,9 +20,9 @@ namespace YAWOL
             _connection.Update(host, typeof(Host));
         }
 
-        public Host[] GetHosts()
+        public IEnumerable<Host> GetHosts()
         {
-            return _connection.Table<Host>().ToArray();
+            return _connection.Table<Host>();
         }
 
         public void SaveHost(Host host)

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
@@ -14,10 +15,8 @@ namespace YAWOL
         [DllImport("iphlpapi.dll")]
         private static extern int SendARP(int DestIP, int SrcIP, [Out] byte[] pMacAddr, ref int PhyAddrLen);
 
-        public static Host[] Scan(string localNetworkAddress, int[] excludedHosts, int low = 1, int high = 255)
+        public static IEnumerable<Host> Scan(string localNetworkAddress, int[] excludedHosts, byte low = byte.MinValue + 1, byte high = byte.MaxValue - 1)
         {
-            high = high < 256 && high >= 0 ? high : 255;
-            low = low < 256 && low >= 0 ? low : 0;
             localNetworkAddress = localNetworkAddress.Remove(localNetworkAddress.LastIndexOf('.') + 1);
 
             ConcurrentBag<PingReply> successfulPingReplies = new ConcurrentBag<PingReply>();
@@ -37,8 +36,8 @@ namespace YAWOL
             ConcurrentBag<Host> scannedHosts = new ConcurrentBag<Host>();
             Parallel.ForEach(successfulPingReplies, reply =>
             {
-                byte[] mac = new byte[6];
-                int length = mac.Length;
+                var mac = new byte[6];
+                var length = mac.Length;
                 SendARP(BitConverter.ToInt32(reply.Address.GetAddressBytes(), 0), 0, mac, ref length);
 
                 String hostname = null;
@@ -59,7 +58,7 @@ namespace YAWOL
                 });
             });
 
-            return scannedHosts.ToArray();
+            return scannedHosts;
         }
 
         public static void Wake(byte[] mac)
@@ -68,7 +67,7 @@ namespace YAWOL
             {
                 client.Connect(IPAddress.Broadcast, 9);
 
-                byte[] packet = new byte[17 * 6];
+                var packet = new byte[17 * 6];
 
                 for (int i = 0; i < 6; i++)
                 {
@@ -87,10 +86,10 @@ namespace YAWOL
             }
         }
 
-        public static NIC[] GetNetworkInterfaces()
+        public static IEnumerable<NIC> GetNetworkInterfaces()
         {
             return (from nic in NetworkInterface.GetAllNetworkInterfaces().Select(n => n.Name)
-                select new NIC(nic, GetInterfaceIpAddress(nic))).ToArray();
+                select new NIC(nic, GetInterfaceIpAddress(nic)));
         }
 
         private static string GetInterfaceIpAddress(string interfacename)
